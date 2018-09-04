@@ -1,4 +1,4 @@
-FROM python:3-slim
+FROM python:3.6-slim
 MAINTAINER Nick Douma <nick.douma@nekoconeko.nl>
 
 # Install devpi and dependencies

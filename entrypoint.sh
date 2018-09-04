@@ -22,9 +22,10 @@ if [ "${1:-}" == "bash" ]; then
     exec "$@"
 fi
 
+DEVPI_ROOT_PASSWORD_FILE="${DEVPI_ROOT_PASSWORD_FILE:-$DEVPI_SERVER_ROOT/.root_password}"
 DEVPI_ROOT_PASSWORD="${DEVPI_ROOT_PASSWORD:-}"
-if [ -f "$DEVPI_SERVER_ROOT/.root_password" ]; then
-    DEVPI_ROOT_PASSWORD=$(cat "$DEVPI_SERVER_ROOT/.root_password")
+if [ -f "$DEVPI_ROOT_PASSWORD_FILE" ]; then
+    DEVPI_ROOT_PASSWORD=$(cat "$DEVPI_ROOT_PASSWORD_FILE")
 elif [ -z "$DEVPI_ROOT_PASSWORD" ]; then
     DEVPI_ROOT_PASSWORD=$(generate_password)
 fi
@@ -51,9 +52,13 @@ if [ "$initialize" == "yes" ]; then
     echo "ENTRYPOINT: Initializing devpi-server"
     devpi use http://localhost:3141
     devpi login root --password=''
-    echo "ENTRYPOINT: Setting root password to $DEVPI_ROOT_PASSWORD"
+    if [ -f "$DEVPI_ROOT_PASSWORD_FILE" ]; then
+      echo "ENTRYPOINT: Setting root password from file $DEVPI_ROOT_PASSWORD_FILE"
+    else
+      echo "ENTRYPOINT: Setting root password to $DEVPI_ROOT_PASSWORD"
+      echo -n "$DEVPI_ROOT_PASSWORD" > "$DEVPI_ROOT_PASSWORD_FILE"
+    fi
     devpi user -m root "password=$DEVPI_ROOT_PASSWORD"
-    echo -n "$DEVPI_ROOT_PASSWORD" > "$DEVPI_SERVER_ROOT/.root_password"
     devpi logoff
 fi
 
